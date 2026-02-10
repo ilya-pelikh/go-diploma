@@ -7,14 +7,14 @@ import (
 	"syscall"
 
 	"diploma/internal/app"
-	"diploma/internal/pkg/config"
+	"diploma/internal/pkg/env"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	config.Load()
+	env.Load()
 
 	app.Run(ctx)
 }

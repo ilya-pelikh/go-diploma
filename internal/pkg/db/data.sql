@@ -1,6 +1,6 @@
-CREATE TABLE scheduler (
-	id integer primary key autoincrement,
-	date date NOT NULL,
+CREATE TABLE IF NOT EXISTS scheduler (
+	id INTEGER primary key autoincrement,
+	date text NOT NULL,
 	title text NOT NULL,
 	comment text NOT NULL,
 	repeat varchar(250) NOT NULL

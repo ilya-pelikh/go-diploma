@@ -3,19 +3,18 @@ package app
 import (
 	"context"
 
-	"diploma/internal/pkg/config"
+	"diploma/internal/pkg/api"
 	"diploma/internal/pkg/db"
+	"diploma/internal/pkg/env"
 	"diploma/internal/pkg/logger"
-	httpserver "diploma/internal/server"
 )
 
 func Run(ctx context.Context) {
-	env := config.Get()
+	logger.Load()
 
-	logger.Load(env.MODE)
 	db.Init(env.TODO_DBFILE)
 
-	server := httpserver.Create(env.TODO_PORT)
+	server := api.Create()
 
 	go func() {
 		<-ctx.Done()

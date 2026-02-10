@@ -1,21 +1,24 @@
 package logger
 
 import (
-	"diploma/internal/pkg/config"
+	"diploma/internal/pkg/env"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var Logger *zap.Logger = zap.NewNop()
 
-func Load(env config.ENV) error {
+func Load() error {
 	var err error
 
-	switch env {
-	case config.PRODUCTION:
+	switch env.MODE {
+	case env.PRODUCTION:
 		Logger, err = zap.NewProduction()
-	case config.DEVELOPMENT:
-		Logger, err = zap.NewDevelopment()
+	case env.DEVELOPMENT:
+		Logger, err = zap.NewDevelopment(
+			zap.AddStacktrace(zapcore.ErrorLevel),
+		)
 	default:
 		Logger = zap.NewNop()
 	}
