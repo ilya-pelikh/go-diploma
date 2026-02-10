@@ -2,8 +2,6 @@ package http
 
 import (
 	"context"
-	"diploma/internal/config"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -12,16 +10,13 @@ type Server struct {
 	server *http.Server
 }
 
-func New() *Server {
-
+func Create(port string) *Server {
 	mux := http.NewServeMux()
 	registerRoutes(mux)
 
-	fmt.Println(config.Get().TODO_PORT)
-
 	return &Server{
 		server: &http.Server{
-			Addr:         ":" + config.Get().TODO_PORT,
+			Addr:         ":" + port,
 			Handler:      mux,
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,

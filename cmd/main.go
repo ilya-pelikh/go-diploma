@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	"diploma/internal/app"
-	"diploma/internal/config"
+	"diploma/internal/pkg/config"
 )
 
 func main() {
