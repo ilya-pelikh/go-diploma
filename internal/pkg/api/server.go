@@ -16,6 +16,7 @@ func registerRoutes(mux *http.ServeMux) {
 	mux.Handle("/", http.FileServer(http.Dir("../web")))
 	mux.Handle("/api/task", http.HandlerFunc(handleTask))
 	mux.Handle("/api/tasks", http.HandlerFunc(handleTasks))
+	mux.Handle("/api/nextdate", http.HandlerFunc(handlePlanner))
 }
 
 func Create() *Server {

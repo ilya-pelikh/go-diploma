@@ -15,10 +15,18 @@ type AddTaskRequestDTO struct {
 	Repeat  string `json:"repeat"`
 }
 
-type AddTaskResponsetDTO struct {
+type TaskResponseDTO struct {
 	Id      int64  `json:"id"`
 	Date    string `json:"date"`
 	Title   string `json:"title"`
 	Comment string `json:"comment"`
 	Repeat  string `json:"repeat"`
+}
+
+type AddTaskResponseDTO struct {
+	Id      int64 `json:"id"`
+	date    string
+	title   string
+	comment string
+	repeat  string
 }

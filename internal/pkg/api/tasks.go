@@ -9,7 +9,7 @@ import (
 )
 
 type tasksResponse struct {
-	Tasks []*task.AddTaskResponsetDTO `json:"tasks"`
+	Tasks []*task.TaskResponseDTO `json:"tasks"`
 }
 
 func handleTasks(res http.ResponseWriter, req *http.Request) {

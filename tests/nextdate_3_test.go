@@ -48,6 +48,7 @@ func TestNextDate(t *testing.T) {
 			if err != nil && len(v.want) == 0 {
 				continue
 			}
+			fmt.Println(v.date, v.repeat, v.want, next)
 			assert.Equal(t, v.want, next, `{%q, %q, %q}`,
 				v.date, v.repeat, v.want)
 		}

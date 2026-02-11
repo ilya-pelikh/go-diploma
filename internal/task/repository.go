@@ -13,7 +13,7 @@ type repository struct {
 
 var Repository repository
 
-func (r *repository) AddTask(path string, dto *AddTaskRequestDTO) (*AddTaskResponsetDTO, error) {
+func (r *repository) AddTask(path string, dto *AddTaskRequestDTO) (*AddTaskResponseDTO, error) {
 	db, err := sql.Open("sqlite", path)
 
 	if err != nil {
@@ -42,18 +42,18 @@ func (r *repository) AddTask(path string, dto *AddTaskRequestDTO) (*AddTaskRespo
 		return nil, err
 	}
 
-	resp := AddTaskResponsetDTO{
+	resp := AddTaskResponseDTO{
 		Id:      id,
-		Date:    dto.Date,
-		Title:   dto.Title,
-		Comment: dto.Comment,
-		Repeat:  dto.Repeat,
+		date:    dto.Date,
+		title:   dto.Title,
+		comment: dto.Comment,
+		repeat:  dto.Repeat,
 	}
 
 	return &resp, nil
 }
 
-func (r *repository) GetAllTasks(path string) ([]*AddTaskResponsetDTO, error) {
+func (r *repository) GetAllTasks(path string) ([]*TaskResponseDTO, error) {
 	db, err := sql.Open("sqlite", path)
 
 	if err != nil {
@@ -71,10 +71,10 @@ func (r *repository) GetAllTasks(path string) ([]*AddTaskResponsetDTO, error) {
 	}
 	defer rows.Close()
 
-	var tasks []*AddTaskResponsetDTO
+	var tasks []*TaskResponseDTO
 
 	for rows.Next() {
-		task := AddTaskResponsetDTO{}
+		task := TaskResponseDTO{}
 
 		err := rows.Scan(&task.Id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 		if err != nil {
