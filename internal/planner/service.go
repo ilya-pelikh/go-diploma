@@ -55,10 +55,10 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 		return dateFrom.AddDate(1, 0, 0).Format("20060102"), nil
 	case "w":
-		rate := "7"
-		if len(data) > 1 {
-			rate = strings.TrimSpace(data[1])
+		if len(data) != 2 || strings.TrimSpace(data[1]) == "" {
+			return "", errors.New("Некорректный формат repeat")
 		}
+		rate := strings.TrimSpace(data[1])
 
 		var numbersOfWeekday []int
 		days := strings.Split(rate, ",")

@@ -12,9 +12,8 @@ func AddTask(dto *AddTaskRequestDTO) (*AddTaskResponseDTO, error) {
 	if strings.TrimSpace(dto.Date) == "" {
 		dto.Date = time.Now().Format("20060102")
 	} else {
-		// COMMENT: я сделал проверку на уровне хендлера, решил что второй раз не нужно это делать
-		data, _ := time.Parse("20060102", dto.Date)
-		if data.Before(time.Now()) {
+
+		if dto.Date < time.Now().Format("20060102") {
 			if strings.TrimSpace(dto.Repeat) == "" {
 				dto.Date = time.Now().Format("20060102")
 			} else {
