@@ -3,6 +3,8 @@ package task
 import (
 	"database/sql"
 	"diploma/internal/pkg/logger"
+	"errors"
+	"fmt"
 
 	"go.uber.org/zap"
 )
@@ -60,6 +62,7 @@ func (r *repository) GetAllTasks(path string, search string, date string) ([]*Ta
 		logger.Get().Error("SQL database file not found")
 		return nil, err
 	}
+	defer db.Close()
 
 	query := `
 		SELECT id, date, title, comment, repeat
@@ -113,4 +116,72 @@ func (r *repository) GetAllTasks(path string, search string, date string) ([]*Ta
 	}
 
 	return tasks, nil
+}
+
+func (r *repository) GetTaskById(path string, id string) (*TaskResponseDTO, error) {
+	db, err := sql.Open("sqlite", path)
+
+	if err != nil {
+		logger.Get().Error("SQL database file not found")
+		return nil, err
+	}
+	defer db.Close()
+	fmt.Println(id)
+
+	row := db.QueryRow(`
+	SELECT id, date, title, comment, repeat
+	FROM scheduler
+	WHERE id = :id`,
+		sql.Named("id", id))
+
+	task := TaskResponseDTO{}
+
+	err = row.Scan(&task.Id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &task, nil
+}
+
+func (r *repository) UpdateTask(path string, dto *UpdateTaskRequestDTO) error {
+	db, err := sql.Open("sqlite", path)
+
+	if err != nil {
+		logger.Get().Error("SQL database file not found")
+		return err
+	}
+	defer db.Close()
+
+	result, err := db.Exec(`
+		UPDATE scheduler
+		SET date = :date,
+			title = :title,
+			comment = :comment,
+			repeat = :repeat
+		WHERE id = :id`,
+		sql.Named("date", dto.Date),
+		sql.Named("title", dto.Title),
+		sql.Named("comment", dto.Comment),
+		sql.Named("repeat", dto.Repeat),
+		sql.Named("id", dto.Id),
+	)
+
+	if err != nil {
+		logger.Get().Error("Couldn't add task using sql", zap.Error(err))
+		return err
+	}
+
+	affectedRowsCount, err := result.RowsAffected()
+
+	if err != nil {
+		logger.Get().Error("Couldn't update task by id from sql result", zap.Error(err))
+		return err
+	}
+	if affectedRowsCount == 0 {
+		return errors.New("task not found")
+	}
+
+	return nil
 }

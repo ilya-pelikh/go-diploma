@@ -29,10 +29,10 @@ func handleTasks(res http.ResponseWriter, req *http.Request) {
 			text = search
 		}
 
-		tasks, err, status := task.GetAllTasks(text, date)
+		tasks, err := task.GetAllTasks(text, date)
 
 		if err != nil {
-			http.Error(res, err.Error(), status)
+			http.Error(res, err.Error(), http.StatusServiceUnavailable)
 			return
 		}
 
