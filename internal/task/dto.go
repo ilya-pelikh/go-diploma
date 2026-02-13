@@ -16,7 +16,7 @@ type AddTaskRequestDTO struct {
 }
 
 type TaskResponseDTO struct {
-	Id      int64  `json:"id"`
+	Id      int64  `json:"id,string"`
 	Date    string `json:"date"`
 	Title   string `json:"title"`
 	Comment string `json:"comment"`
@@ -24,7 +24,7 @@ type TaskResponseDTO struct {
 }
 
 type AddTaskResponseDTO struct {
-	Id      int64 `json:"id"`
+	Id      int64 `json:"id,string"`
 	date    string
 	title   string
 	comment string

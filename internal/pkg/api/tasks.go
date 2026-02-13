@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"diploma/internal/pkg/logger"
 	"diploma/internal/task"
@@ -15,7 +16,20 @@ type tasksResponse struct {
 func handleTasks(res http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
-		tasks, err, status := task.GetAllTasks()
+		query := req.URL.Query()
+		search := query.Get("search")
+
+		date := ""
+		text := ""
+
+		parsedDate, err := time.Parse("02.01.2006", search)
+		if err == nil {
+			date = parsedDate.Format("20060102")
+		} else {
+			text = search
+		}
+
+		tasks, err, status := task.GetAllTasks(text, date)
 
 		if err != nil {
 			http.Error(res, err.Error(), status)

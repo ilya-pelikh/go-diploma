@@ -53,7 +53,7 @@ func (r *repository) AddTask(path string, dto *AddTaskRequestDTO) (*AddTaskRespo
 	return &resp, nil
 }
 
-func (r *repository) GetAllTasks(path string) ([]*TaskResponseDTO, error) {
+func (r *repository) GetAllTasks(path string, search string, date string) ([]*TaskResponseDTO, error) {
 	db, err := sql.Open("sqlite", path)
 
 	if err != nil {
@@ -61,9 +61,32 @@ func (r *repository) GetAllTasks(path string) ([]*TaskResponseDTO, error) {
 		return nil, err
 	}
 
-	rows, err := db.Query(`
-	SELECT id, date, title, comment, repeat
-	FROM scheduler`)
+	query := `
+		SELECT id, date, title, comment, repeat
+		FROM scheduler`
+
+	if len(date) != 0 {
+		query += `
+		WHERE date = :date`
+	} else {
+		query += `
+		WHERE 1=1`
+	}
+
+	if len(search) != 0 {
+		query += `
+		AND title LIKE :search
+		OR comment LIKE :search`
+	}
+
+	query += `
+		ORDER BY date
+		LIMIT 50`
+
+	rows, err := db.Query(query,
+		sql.Named("search", "%"+search+"%"),
+		sql.Named("date", date),
+	)
 
 	if err != nil {
 		logger.Get().Error("Couldn't get all task using sql")
@@ -71,7 +94,7 @@ func (r *repository) GetAllTasks(path string) ([]*TaskResponseDTO, error) {
 	}
 	defer rows.Close()
 
-	var tasks []*TaskResponseDTO
+	tasks := make([]*TaskResponseDTO, 0)
 
 	for rows.Next() {
 		task := TaskResponseDTO{}

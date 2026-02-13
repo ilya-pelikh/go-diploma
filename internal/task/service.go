@@ -37,8 +37,8 @@ func AddTask(dto *AddTaskRequestDTO) (*AddTaskResponseDTO, error) {
 	return result, nil
 }
 
-func GetAllTasks() ([]*TaskResponseDTO, error, int) {
-	result, err := Repository.GetAllTasks(env.TODO_DBFILE)
+func GetAllTasks(search string, date string) ([]*TaskResponseDTO, error, int) {
+	result, err := Repository.GetAllTasks(env.TODO_DBFILE, search, date)
 
 	if err != nil {
 		return nil, err, http.StatusServiceUnavailable

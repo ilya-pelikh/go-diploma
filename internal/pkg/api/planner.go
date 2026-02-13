@@ -10,7 +10,6 @@ import (
 func handlePlanner(res http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
-
 		query := req.URL.Query()
 
 		now, err := time.Parse("20060102", query.Get("now"))
