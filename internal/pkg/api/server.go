@@ -14,8 +14,10 @@ type Server struct {
 
 func registerRoutes(mux *http.ServeMux) {
 	mux.Handle("/", http.FileServer(http.Dir("web")))
-	mux.Handle("/api/task", http.HandlerFunc(handleTask))
-	mux.Handle("/api/tasks", http.HandlerFunc(handleTasks))
+	mux.Handle("/api/signin", http.HandlerFunc(handleAuth))
+	mux.Handle("/api/task", auth(http.HandlerFunc(handleTask)))
+	mux.Handle("/api/task/done", auth(http.HandlerFunc(handleTaskDone)))
+	mux.Handle("/api/tasks", auth(http.HandlerFunc(handleTasks)))
 	mux.Handle("/api/nextdate", http.HandlerFunc(handlePlanner))
 }
 

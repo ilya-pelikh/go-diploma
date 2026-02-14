@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"diploma/internal/pkg/logger"
@@ -79,6 +80,7 @@ func handleTask(res http.ResponseWriter, req *http.Request) {
 
 		if len(id) == 0 {
 			writeError(res, "Не указан id", http.StatusBadRequest)
+			return
 		}
 
 		response, err := task.GetTaskById(id)
@@ -142,6 +144,26 @@ func handleTask(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 		res.WriteHeader(http.StatusOK)
+		res.Write([]byte(`{}`))
+
+	case "DELETE":
+		res.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+		query := req.URL.Query()
+		id := query.Get("id")
+		if len(id) == 0 {
+			writeError(res, "Нет идентификатора задачи", 400)
+			return
+		}
+
+		err := task.DeleteTask(id)
+
+		if err != nil {
+			writeError(res, fmt.Sprint(err), 400)
+			return
+		}
+
+		res.WriteHeader(http.StatusCreated)
 		res.Write([]byte(`{}`))
 	default:
 		res.WriteHeader(405)

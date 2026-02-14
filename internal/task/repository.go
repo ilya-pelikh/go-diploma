@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"diploma/internal/pkg/logger"
 	"errors"
-	"fmt"
 
 	"go.uber.org/zap"
 )
@@ -126,7 +125,6 @@ func (r *repository) GetTaskById(path string, id string) (*TaskResponseDTO, erro
 		return nil, err
 	}
 	defer db.Close()
-	fmt.Println(id)
 
 	row := db.QueryRow(`
 	SELECT id, date, title, comment, repeat
@@ -138,7 +136,6 @@ func (r *repository) GetTaskById(path string, id string) (*TaskResponseDTO, erro
 
 	err = row.Scan(&task.Id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
@@ -183,5 +180,37 @@ func (r *repository) UpdateTask(path string, dto *UpdateTaskRequestDTO) error {
 		return errors.New("task not found")
 	}
 
+	return nil
+}
+
+func (r *repository) DeleteTask(path string, id string) error {
+	db, err := sql.Open("sqlite", path)
+
+	if err != nil {
+		logger.Get().Error("SQL database file not found")
+		return err
+	}
+	defer db.Close()
+
+	result, err := db.Exec(`
+		DELETE FROM scheduler
+		WHERE id = :id`,
+		sql.Named("id", id),
+	)
+
+	if err != nil {
+		logger.Get().Error("Couldn't add task using sql", zap.Error(err))
+		return err
+	}
+
+	affectedRowsCount, err := result.RowsAffected()
+
+	if err != nil {
+		logger.Get().Error("Couldn't update task by id from sql result", zap.Error(err))
+		return err
+	}
+	if affectedRowsCount == 0 {
+		return errors.New("task not found")
+	}
 	return nil
 }

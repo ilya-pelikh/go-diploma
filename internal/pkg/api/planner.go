@@ -39,5 +39,7 @@ func handlePlanner(res http.ResponseWriter, req *http.Request) {
 
 		res.WriteHeader(http.StatusCreated)
 		res.Write([]byte(resp))
+	default:
+		res.WriteHeader(405)
 	}
 }

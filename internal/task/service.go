@@ -82,3 +82,48 @@ func UpdateTask(dto *UpdateTaskRequestDTO) error {
 	}
 	return nil
 }
+
+func DoTask(id string) error {
+	result, err := Repository.GetTaskById(env.TODO_DBFILE, id)
+	if err != nil {
+		return err
+	}
+
+	if result.Repeat == "" {
+		err := Repository.DeleteTask(env.TODO_DBFILE, id)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	date, err := planner.NextDate(time.Now(), result.Date, result.Repeat)
+	if err != nil {
+		return err
+	}
+
+	task := &UpdateTaskRequestDTO{
+		Id:      result.Id,
+		Date:    date,
+		Title:   result.Title,
+		Comment: result.Comment,
+		Repeat:  result.Repeat,
+	}
+
+	err = Repository.UpdateTask(env.TODO_DBFILE, task)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteTask(id string) error {
+	err := Repository.DeleteTask(env.TODO_DBFILE, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
