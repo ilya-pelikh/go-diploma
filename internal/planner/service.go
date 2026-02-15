@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"diploma/internal/pkg/constants"
 )
 
 func daysInMonth(year int, month time.Month, loc *time.Location) int {
@@ -21,7 +23,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 
 	var period = strings.TrimSpace(data[0])
 
-	dateFrom, err := time.Parse("20060102", dstart)
+	dateFrom, err := time.Parse(constants.DateFormat, dstart)
 
 	if err != nil {
 		return "", errors.New("Некорректный формат даты")
@@ -44,16 +46,16 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			dateFrom = dateFrom.AddDate(0, 0, shift)
 		}
 
-		return dateFrom.Format("20060102"), nil
+		return dateFrom.Format(constants.DateFormat), nil
 	case "y":
 		if dateFrom.Before(now) {
 			date := time.Date(now.Year(), dateFrom.Month(), dateFrom.Day(), 0, 0, 0, 0, loc)
 			if date.Before(now) || date.Equal(now) {
 				date = date.AddDate(1, 0, 0)
 			}
-			return date.Format("20060102"), nil
+			return date.Format(constants.DateFormat), nil
 		}
-		return dateFrom.AddDate(1, 0, 0).Format("20060102"), nil
+		return dateFrom.AddDate(1, 0, 0).Format(constants.DateFormat), nil
 	case "w":
 		if len(data) != 2 || strings.TrimSpace(data[1]) == "" {
 			return "", errors.New("Некорректный формат repeat")
@@ -99,7 +101,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			}
 		}
 
-		return lowestDay.Format("20060102"), nil
+		return lowestDay.Format(constants.DateFormat), nil
 	case "m":
 		numbersOfMonths := "1,2,3,4,5,6,7,8,9,10,11,12"
 		if len(data) > 2 {
@@ -168,7 +170,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			}
 		}
 
-		return lowestDay.Format("20060102"), nil
+		return lowestDay.Format(constants.DateFormat), nil
 	}
 	return "", errors.New("Некорректный формат переноса")
 }

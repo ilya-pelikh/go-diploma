@@ -2,18 +2,18 @@ package api
 
 import (
 	"bytes"
-	"diploma/internal/identity"
-	"diploma/internal/pkg/logger"
 	"encoding/json"
 	"net/http"
+
+	"diploma/internal/identity"
+	"diploma/internal/pkg/logger"
 
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 )
 
-func handleAuth(res http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case "POST":
+func HandleSignin(res http.ResponseWriter, req *http.Request) {
+	if req.Method == http.MethodPost {
 		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		var buf bytes.Buffer
@@ -47,24 +47,16 @@ func handleAuth(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		password, err := identity.CheckAuth(dto)
+		token, err := identity.CreateToken(dto)
 
 		if err != nil {
 			writeError(res, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		response, err := json.Marshal(password)
-		if err != nil {
-			writeError(res, err.Error(), http.StatusInternalServerError)
-			logger.Get().Error("Error:", zap.Error(err))
-			return
-		}
-
-		res.WriteHeader(http.StatusOK)
-		res.Write(response)
-
-	default:
-		res.WriteHeader(405)
+		writeResponse(res, token, http.StatusOK)
+		return
 	}
+
+	writeResponse(res, nil, http.StatusMethodNotAllowed)
 }

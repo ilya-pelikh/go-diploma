@@ -2,19 +2,35 @@ package identity
 
 import (
 	"errors"
-	"os"
+
+	"github.com/golang-jwt/jwt/v5"
+
+	"diploma/internal/pkg/config"
 )
 
-const JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6InByaXZldCJ9.37gqWJV0QtJL6ll1oiBUZzDb3T-oBvSV7JWx83coozA"
-
-func CheckAuth(dto AuthRequestDTO) (*AuthResponseDTO, error) {
-	password := os.Getenv("TODO_PASSWORD")
-
-	if dto.Password == password {
-		resp := AuthResponseDTO{
-			Token: JWT_TOKEN,
-		}
-		return &resp, nil
+func CreateToken(dto AuthRequestDTO) (*AuthResponseDTO, error) {
+	if dto.Password != config.ENV.TODO_PASSWORD {
+		return nil, errors.New("password is not correct")
 	}
-	return nil, errors.New("Пароли не совпадают")
+
+	t := jwt.New(jwt.SigningMethodHS256)
+	signedToken, err := t.SignedString([]byte(config.ENV.TODO_JWT_KEY))
+	if err != nil {
+		return nil, errors.New("couldn't create token")
+	}
+
+	return &AuthResponseDTO{Token: signedToken}, nil
+}
+
+func VerifyToken(tokenString string) (bool, error) {
+	parsed, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(config.ENV.TODO_JWT_KEY), nil
+	})
+	if err != nil {
+		return false, err
+	}
+	return parsed.Valid, nil
 }

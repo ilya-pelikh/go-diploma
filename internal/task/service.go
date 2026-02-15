@@ -1,20 +1,21 @@
 package task
 
 import (
-	"diploma/internal/pkg/env"
-	"diploma/internal/planner"
 	"strings"
 	"time"
+
+	"diploma/internal/pkg/constants"
+	"diploma/internal/planner"
 )
 
 func AddTask(dto *AddTaskRequestDTO) (*AddTaskResponseDTO, error) {
 	if strings.TrimSpace(dto.Date) == "" {
-		dto.Date = time.Now().Format("20060102")
+		dto.Date = time.Now().Format(constants.DateFormat)
 	} else {
 
-		if dto.Date < time.Now().Format("20060102") {
+		if dto.Date < time.Now().Format(constants.DateFormat) {
 			if strings.TrimSpace(dto.Repeat) == "" {
-				dto.Date = time.Now().Format("20060102")
+				dto.Date = time.Now().Format(constants.DateFormat)
 			} else {
 				date, err := planner.NextDate(time.Now(), dto.Date, dto.Repeat)
 				if err != nil {
@@ -27,7 +28,7 @@ func AddTask(dto *AddTaskRequestDTO) (*AddTaskResponseDTO, error) {
 
 	}
 
-	result, err := Repository.AddTask(env.TODO_DBFILE, dto)
+	result, err := Repository.AddTask(dto)
 
 	if err != nil {
 		return nil, err
@@ -37,7 +38,7 @@ func AddTask(dto *AddTaskRequestDTO) (*AddTaskResponseDTO, error) {
 }
 
 func GetAllTasks(search string, date string) ([]*TaskResponseDTO, error) {
-	result, err := Repository.GetAllTasks(env.TODO_DBFILE, search, date)
+	result, err := Repository.GetAllTasks(search, date)
 
 	if err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func GetAllTasks(search string, date string) ([]*TaskResponseDTO, error) {
 }
 
 func GetTaskById(id string) (*TaskResponseDTO, error) {
-	result, err := Repository.GetTaskById(env.TODO_DBFILE, id)
+	result, err := Repository.GetTaskById(id)
 
 	if err != nil {
 		return nil, err
@@ -58,12 +59,12 @@ func GetTaskById(id string) (*TaskResponseDTO, error) {
 
 func UpdateTask(dto *UpdateTaskRequestDTO) error {
 	if strings.TrimSpace(dto.Date) == "" {
-		dto.Date = time.Now().Format("20060102")
+		dto.Date = time.Now().Format(constants.DateFormat)
 	} else {
 
-		if dto.Date < time.Now().Format("20060102") {
+		if dto.Date < time.Now().Format(constants.DateFormat) {
 			if strings.TrimSpace(dto.Repeat) == "" {
-				dto.Date = time.Now().Format("20060102")
+				dto.Date = time.Now().Format(constants.DateFormat)
 			} else {
 				date, err := planner.NextDate(time.Now(), dto.Date, dto.Repeat)
 				if err != nil {
@@ -75,7 +76,7 @@ func UpdateTask(dto *UpdateTaskRequestDTO) error {
 		}
 
 	}
-	err := Repository.UpdateTask(env.TODO_DBFILE, dto)
+	err := Repository.UpdateTask(dto)
 
 	if err != nil {
 		return err
@@ -84,13 +85,13 @@ func UpdateTask(dto *UpdateTaskRequestDTO) error {
 }
 
 func DoTask(id string) error {
-	result, err := Repository.GetTaskById(env.TODO_DBFILE, id)
+	result, err := Repository.GetTaskById(id)
 	if err != nil {
 		return err
 	}
 
 	if result.Repeat == "" {
-		err := Repository.DeleteTask(env.TODO_DBFILE, id)
+		err := Repository.DeleteTask(id)
 		if err != nil {
 			return err
 		}
@@ -110,7 +111,7 @@ func DoTask(id string) error {
 		Repeat:  result.Repeat,
 	}
 
-	err = Repository.UpdateTask(env.TODO_DBFILE, task)
+	err = Repository.UpdateTask(task)
 
 	if err != nil {
 		return err
@@ -120,7 +121,7 @@ func DoTask(id string) error {
 }
 
 func DeleteTask(id string) error {
-	err := Repository.DeleteTask(env.TODO_DBFILE, id)
+	err := Repository.DeleteTask(id)
 	if err != nil {
 		return err
 	}

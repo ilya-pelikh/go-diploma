@@ -2,28 +2,19 @@ package task
 
 import (
 	"database/sql"
-	"diploma/internal/pkg/logger"
 	"errors"
+	"fmt"
 
-	"go.uber.org/zap"
+	"diploma/internal/pkg/constants"
+	"diploma/internal/pkg/db"
 )
 
-type repository struct {
-	db string
-}
+type repository struct{}
 
 var Repository repository
 
-func (r *repository) AddTask(path string, dto *AddTaskRequestDTO) (*AddTaskResponseDTO, error) {
-	db, err := sql.Open("sqlite", path)
-
-	if err != nil {
-		logger.Get().Error("SQL database file not found")
-		return nil, err
-	}
-	defer db.Close()
-
-	result, err := db.Exec(`
+func (r *repository) AddTask(dto *AddTaskRequestDTO) (*AddTaskResponseDTO, error) {
+	result, err := db.Database.Exec(`
 		INSERT INTO scheduler (date, title, comment, repeat)
 		VALUES (:date, :title, :comment, :repeat)`,
 		sql.Named("date", dto.Date),
@@ -32,14 +23,12 @@ func (r *repository) AddTask(path string, dto *AddTaskRequestDTO) (*AddTaskRespo
 		sql.Named("repeat", dto.Repeat))
 
 	if err != nil {
-		logger.Get().Error("Couldn't add task using sql", zap.Error(err))
 		return nil, err
 	}
 
 	id, err := result.LastInsertId()
 
 	if err != nil {
-		logger.Get().Error("Couldn't get task id from sql result", zap.Error(err))
 		return nil, err
 	}
 
@@ -54,15 +43,7 @@ func (r *repository) AddTask(path string, dto *AddTaskRequestDTO) (*AddTaskRespo
 	return &resp, nil
 }
 
-func (r *repository) GetAllTasks(path string, search string, date string) ([]*TaskResponseDTO, error) {
-	db, err := sql.Open("sqlite", path)
-
-	if err != nil {
-		logger.Get().Error("SQL database file not found")
-		return nil, err
-	}
-	defer db.Close()
-
+func (r *repository) GetAllTasks(search string, date string) ([]*TaskResponseDTO, error) {
 	query := `
 		SELECT id, date, title, comment, repeat
 		FROM scheduler`
@@ -81,17 +62,16 @@ func (r *repository) GetAllTasks(path string, search string, date string) ([]*Ta
 		OR comment LIKE :search`
 	}
 
-	query += `
+	query += fmt.Sprintf(`
 		ORDER BY date
-		LIMIT 50`
+		LIMIT %d`, constants.PageSize)
 
-	rows, err := db.Query(query,
+	rows, err := db.Database.Query(query,
 		sql.Named("search", "%"+search+"%"),
 		sql.Named("date", date),
 	)
 
 	if err != nil {
-		logger.Get().Error("Couldn't get all task using sql")
 		return nil, err
 	}
 	defer rows.Close()
@@ -103,30 +83,20 @@ func (r *repository) GetAllTasks(path string, search string, date string) ([]*Ta
 
 		err := rows.Scan(&task.Id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 		if err != nil {
-			logger.Get().Error("Couldn't parse task after using sql")
 			return nil, err
 		}
 		tasks = append(tasks, &task)
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.Get().Error("Rows error")
 		return nil, err
 	}
 
 	return tasks, nil
 }
 
-func (r *repository) GetTaskById(path string, id string) (*TaskResponseDTO, error) {
-	db, err := sql.Open("sqlite", path)
-
-	if err != nil {
-		logger.Get().Error("SQL database file not found")
-		return nil, err
-	}
-	defer db.Close()
-
-	row := db.QueryRow(`
+func (r *repository) GetTaskById(id string) (*TaskResponseDTO, error) {
+	row := db.Database.QueryRow(`
 	SELECT id, date, title, comment, repeat
 	FROM scheduler
 	WHERE id = :id`,
@@ -134,7 +104,7 @@ func (r *repository) GetTaskById(path string, id string) (*TaskResponseDTO, erro
 
 	task := TaskResponseDTO{}
 
-	err = row.Scan(&task.Id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+	err := row.Scan(&task.Id, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 	if err != nil {
 		return nil, err
 	}
@@ -142,16 +112,8 @@ func (r *repository) GetTaskById(path string, id string) (*TaskResponseDTO, erro
 	return &task, nil
 }
 
-func (r *repository) UpdateTask(path string, dto *UpdateTaskRequestDTO) error {
-	db, err := sql.Open("sqlite", path)
-
-	if err != nil {
-		logger.Get().Error("SQL database file not found")
-		return err
-	}
-	defer db.Close()
-
-	result, err := db.Exec(`
+func (r *repository) UpdateTask(dto *UpdateTaskRequestDTO) error {
+	result, err := db.Database.Exec(`
 		UPDATE scheduler
 		SET date = :date,
 			title = :title,
@@ -166,16 +128,15 @@ func (r *repository) UpdateTask(path string, dto *UpdateTaskRequestDTO) error {
 	)
 
 	if err != nil {
-		logger.Get().Error("Couldn't add task using sql", zap.Error(err))
 		return err
 	}
 
 	affectedRowsCount, err := result.RowsAffected()
 
 	if err != nil {
-		logger.Get().Error("Couldn't update task by id from sql result", zap.Error(err))
 		return err
 	}
+
 	if affectedRowsCount == 0 {
 		return errors.New("task not found")
 	}
@@ -183,30 +144,20 @@ func (r *repository) UpdateTask(path string, dto *UpdateTaskRequestDTO) error {
 	return nil
 }
 
-func (r *repository) DeleteTask(path string, id string) error {
-	db, err := sql.Open("sqlite", path)
-
-	if err != nil {
-		logger.Get().Error("SQL database file not found")
-		return err
-	}
-	defer db.Close()
-
-	result, err := db.Exec(`
+func (r *repository) DeleteTask(id string) error {
+	result, err := db.Database.Exec(`
 		DELETE FROM scheduler
 		WHERE id = :id`,
 		sql.Named("id", id),
 	)
 
 	if err != nil {
-		logger.Get().Error("Couldn't add task using sql", zap.Error(err))
 		return err
 	}
 
 	affectedRowsCount, err := result.RowsAffected()
 
 	if err != nil {
-		logger.Get().Error("Couldn't update task by id from sql result", zap.Error(err))
 		return err
 	}
 	if affectedRowsCount == 0 {

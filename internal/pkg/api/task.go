@@ -15,9 +15,8 @@ import (
 
 var v = validator.New()
 
-func handleTask(res http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case "POST":
+func HandleTask(res http.ResponseWriter, req *http.Request) {
+	if req.Method == http.MethodPost {
 		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		var buf bytes.Buffer
@@ -63,17 +62,13 @@ func handleTask(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		resp, err := json.Marshal(respose)
-		if err != nil {
-			writeError(res, err.Error(), http.StatusInternalServerError)
-			logger.Get().Error("Error:", zap.Error(err))
-			return
-		}
-		res.WriteHeader(http.StatusCreated)
-		res.Write(resp)
+		writeResponse(res, respose, http.StatusCreated)
 
 		logger.Get().Info("Created task:", zap.Any("task", respose))
-	case "GET":
+		return
+	}
+
+	if req.Method == http.MethodGet {
 		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 		query := req.URL.Query()
 		id := query.Get("id")
@@ -91,15 +86,13 @@ func handleTask(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		resp, err := json.Marshal(response)
-		if err != nil {
-			writeError(res, err.Error(), http.StatusInternalServerError)
-			logger.Get().Error("Error:", zap.Error(err))
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-		res.Write(resp)
-	case "PUT":
+		writeResponse(res, response, http.StatusOK)
+
+		logger.Get().Info("Updated task:", zap.Any("task", response))
+		return
+	}
+
+	if req.Method == http.MethodPut {
 		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		var buf bytes.Buffer
@@ -143,10 +136,12 @@ func handleTask(res http.ResponseWriter, req *http.Request) {
 			logger.Get().Error("Error:", zap.Error(err))
 			return
 		}
-		res.WriteHeader(http.StatusOK)
-		res.Write([]byte(`{}`))
 
-	case "DELETE":
+		writeResponse(res, nil, http.StatusOK)
+		return
+	}
+
+	if req.Method == http.MethodDelete {
 		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		query := req.URL.Query()
@@ -163,10 +158,9 @@ func handleTask(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		res.WriteHeader(http.StatusCreated)
-		res.Write([]byte(`{}`))
-	default:
-		res.WriteHeader(405)
+		writeResponse(res, nil, http.StatusOK)
+		return
 	}
 
+	res.WriteHeader(http.StatusMethodNotAllowed)
 }

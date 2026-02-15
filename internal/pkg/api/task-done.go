@@ -1,14 +1,14 @@
 package api
 
 import (
-	"diploma/internal/task"
 	"fmt"
 	"net/http"
+
+	"diploma/internal/task"
 )
 
-func handleTaskDone(res http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case "POST":
+func HandleTaskDone(res http.ResponseWriter, req *http.Request) {
+	if req.Method == http.MethodPost {
 		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 		query := req.URL.Query()
@@ -23,10 +23,9 @@ func handleTaskDone(res http.ResponseWriter, req *http.Request) {
 			writeError(res, fmt.Sprint(err), 400)
 			return
 		}
-
-		res.WriteHeader(http.StatusCreated)
-		res.Write([]byte(`{}`))
-	default:
-		res.WriteHeader(405)
+		writeResponse(res, nil, http.StatusCreated)
+		return
 	}
+
+	writeResponse(res, nil, http.StatusMethodNotAllowed)
 }

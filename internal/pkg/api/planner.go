@@ -1,18 +1,19 @@
 package api
 
 import (
-	"diploma/internal/planner"
 	"fmt"
 	"net/http"
 	"time"
+
+	"diploma/internal/pkg/constants"
+	"diploma/internal/planner"
 )
 
-func handlePlanner(res http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case "GET":
+func HandlePlanner(res http.ResponseWriter, req *http.Request) {
+	if req.Method == http.MethodGet {
 		query := req.URL.Query()
 
-		now, err := time.Parse("20060102", query.Get("now"))
+		now, err := time.Parse(constants.DateFormat, query.Get("now"))
 		if err != nil {
 			writeError(res, "", 400)
 			return
@@ -30,16 +31,16 @@ func handlePlanner(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		resp, err := planner.NextDate(now, dtstart, repeat)
+		response, err := planner.NextDate(now, dtstart, repeat)
 
 		if err != nil {
 			writeError(res, fmt.Sprint(err), 400)
 			return
 		}
 
-		res.WriteHeader(http.StatusCreated)
-		res.Write([]byte(resp))
-	default:
-		res.WriteHeader(405)
+		writeResponse(res, response, http.StatusCreated)
+		return
 	}
+
+	writeResponse(res, nil, http.StatusMethodNotAllowed)
 }

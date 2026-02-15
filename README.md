@@ -12,9 +12,10 @@
 
    ```
    TODO_PORT=7540
-   TODO_DBFILE=scheduler.db
-   ENV=development
-   TODO_PASSWORD=privet
+   TODO_ENV="development"
+   TODO_DBFILE="scheduler.db"
+   TODO_PASSWORD="privet"
+   TODO_JWT_KEY="super_secret_key"
    ```
 
    Если `TODO_PASSWORD` задан, все `/api/*` (кроме `/api/nextdate`) требуют авторизацию (cookie `token`).
